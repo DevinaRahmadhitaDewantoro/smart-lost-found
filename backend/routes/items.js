@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
-const matchRouter = require('./match'); // Imported match.js to handle FR-15 through FR-18
+//const matchRouter = require('./match'); // Imported match.js to handle FR-15 through FR-18
 
 // FR-04, FR-05, FR-06, FR-07: Submit lost item report
 router.post('/lost', (req, res) => {
@@ -16,7 +16,7 @@ router.post('/lost', (req, res) => {
       const newItemId = result.insertId;
 
       // Automatically triggers matching algorithm asynchronously
-      matchRouter.checkForMatches(newItemId);
+      // matchRouter.checkForMatches(newItemId);
 
       // FR-28: Confirm successful submission back to user [cite: 87]
       res.status(201).json({ message: 'Lost item reported successfully', item_id: newItemId });
