@@ -4,3 +4,5 @@ dist/
 .vscode/
 frontend/.env
 backend/.env
+*.exe
+backend/node.exe
