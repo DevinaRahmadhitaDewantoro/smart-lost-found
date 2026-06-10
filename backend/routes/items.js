@@ -1,9 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
-//const matchRouter = require('./match'); // Imported match.js to handle FR-15 through FR-18
 
-// FR-04, FR-05, FR-06, FR-07: Submit lost item report
+// FR-04: Submit lost item
 router.post('/lost', (req, res) => {
   const { user_id, name, category, description, location, date_reported } = req.body;
 
@@ -11,20 +10,20 @@ router.post('/lost', (req, res) => {
     'INSERT INTO items (user_id, type, name, category, description, location, date_reported, status) VALUES (?, "lost", ?, ?, ?, ?, ?, "lost")',
     [user_id, name, category, description, location, date_reported],
     (err, result) => {
-      if (err) return res.status(500).json({ message: 'Server error', error: err.message });
-      
-      const newItemId = result.insertId;
+      if (err) {
+        console.log(err);
+        return res.status(500).json({ message: err.message });
+      }
 
-      // Automatically triggers matching algorithm asynchronously
-      // matchRouter.checkForMatches(newItemId);
-
-      // FR-28: Confirm successful submission back to user [cite: 87]
-      res.status(201).json({ message: 'Lost item reported successfully', item_id: newItemId });
+      res.status(201).json({
+        message: 'Lost item reported successfully',
+        item_id: result.insertId
+      });
     }
   );
 });
 
-// FR-08, FR-09, FR-10, FR-11: Submit found item report
+// FR-08: Submit found item
 router.post('/found', (req, res) => {
   const { user_id, name, category, description, location, date_reported } = req.body;
 
@@ -32,32 +31,43 @@ router.post('/found', (req, res) => {
     'INSERT INTO items (user_id, type, name, category, description, location, date_reported, status) VALUES (?, "found", ?, ?, ?, ?, ?, "found")',
     [user_id, name, category, description, location, date_reported],
     (err, result) => {
-      if (err) return res.status(500).json({ message: 'Server error', error: err.message });
-      
-      const newItemId = result.insertId;
+      if (err) {
+        console.log(err);
+        return res.status(500).json({ message: err.message });
+      }
 
-      // Automatically triggers matching algorithm asynchronously
-      matchRouter.checkForMatches(newItemId);
-
-      // FR-28: Confirm successful submission back to user [cite: 87]
-      res.status(201).json({ message: 'Found item reported successfully', item_id: newItemId });
+      res.status(201).json({
+        message: 'Found item reported successfully',
+        item_id: result.insertId
+      });
     }
   );
 });
 
-// Get all items
+// GET all items (SAFE)
 router.get('/', (req, res) => {
-  db.query('SELECT * FROM items ORDER BY created_at DESC', (err, results) => {
-    if (err) return res.status(500).json({ message: 'Server error' });
+  db.query('SELECT * FROM items', (err, results) => {
+    if (err) {
+      console.log(err);
+      return res.status(500).json({ message: err.message });
+    }
+
     res.json(results);
   });
 });
 
-// Get single item by ID
+// GET item by ID
 router.get('/:id', (req, res) => {
   db.query('SELECT * FROM items WHERE id = ?', [req.params.id], (err, results) => {
-    if (err) return res.status(500).json({ message: 'Server error' });
-    if (results.length === 0) return res.status(404).json({ message: 'Item not found' });
+    if (err) {
+      console.log(err);
+      return res.status(500).json({ message: err.message });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ message: 'Item not found' });
+    }
+
     res.json(results[0]);
   });
 });
